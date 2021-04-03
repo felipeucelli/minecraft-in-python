@@ -20,7 +20,7 @@ class Blocks:
 
         self.faces = self.block_faces()
 
-        self.create_block()
+        self.generate_world()
 
     @staticmethod
     def get_texture(texture_file):
@@ -67,6 +67,12 @@ class Blocks:
         self.faces = self.block_faces(nx=round(self.new_block[0]) - 1, ny=round(self.new_block[1]) - 2,
                                       nz=round(self.new_block[2]) - 2)
         self.create_block()
+
+    def generate_world(self):
+        for x in range(-16, 16):
+            for z in range(-16, 16):
+                self.faces = self.block_faces(nx=x, ny=0, nz=z)
+                self.create_block()
 
 
 class Player:
@@ -130,7 +136,7 @@ class Window(pyglet.window.Window):
         self.mouse_lock = False
 
         self.blocks = Blocks()
-        self.player = Player((0.5, 1.5, 1.5), (-30, 0))
+        self.player = Player((0, 3, 0), (-30, 0))
 
     def gl_push(self, pos):
         pyglet.gl.glPushMatrix()
