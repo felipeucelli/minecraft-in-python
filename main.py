@@ -4,14 +4,22 @@ import math
 
 class Blocks:
     def __init__(self):
+        self.block_len = 0
         self.top = self.get_texture('texture/grass_top.png')
         self.side = self.get_texture('texture/grass_side.png')
         self.bottom = self.get_texture('texture/dir.png')
 
         self.vertex = ('t2f', (0, 0, 1, 0, 1, 1, 0, 1))
         self.texture_group = (self.side, self.side, self.side, self.side, self.bottom, self.top)
-        self.faces = self.block_faces()
         self.batch = pyglet.graphics.Batch()
+
+        self.block_sector = []
+        self.new_block = []
+        self.cube = []
+        self.world = []
+
+        self.faces = self.block_faces()
+
         self.create_block()
 
     @staticmethod
@@ -20,9 +28,10 @@ class Blocks:
         texture = texture.get_texture()
         return pyglet.graphics.TextureGroup(texture)
 
-    @staticmethod
-    def block_faces():
-        x, y, z = 0, 0, -1
+    def block_faces(self, nx=0, ny=0, nz=0):
+        x, y, z = 0 + nx, 0 + ny, -1 + nz
+
+        self.block_sector.append((x, y, z))
 
         return ((x + 1, y, z, x, y, z, x, y + 1, z, x + 1, y + 1, z),
 
@@ -38,8 +47,26 @@ class Blocks:
                 )
 
     def create_block(self):
+        self.cube = []
         for c in range(0, 6):
-            self.batch.add(4, pyglet.gl.GL_QUADS, self.texture_group[c], ('v3f', self.faces[c]), self.vertex)
+            self.cube.append(
+                self.batch.add(4, pyglet.gl.GL_QUADS, self.texture_group[c], ('v3f', self.faces[c]), self.vertex))
+        self.world.append(self.cube)
+
+    def remove_block(self):
+        if self.block_len >= 1:
+            for k, v in enumerate(self.block_sector):
+                if v[0] == round(self.new_block[0]) - 1 and v[1] == round(self.new_block[1]) - 2 and v[2] == round(
+                        self.new_block[2]) - 3:
+                    for index in range(0, 6):
+                        self.world[k][index].delete()
+                    self.block_len -= 1
+
+    def add_block(self):
+        self.block_len += 1
+        self.faces = self.block_faces(nx=round(self.new_block[0]) - 1, ny=round(self.new_block[1]) - 2,
+                                      nz=round(self.new_block[2]) - 2)
+        self.create_block()
 
 
 class Player:
@@ -137,6 +164,12 @@ class Window(pyglet.window.Window):
         if self.mouse_lock:
             self.player.mouse_movement(dx, dy)
 
+    def on_mouse_press(self, x, y, button, modifiers):
+        if button == 1:
+            self.blocks.add_block()
+        else:
+            self.blocks.remove_block()
+
     def on_key_press(self, key, key_mod):
         if key == pyglet.window.key.ESCAPE:
             self.close()
@@ -150,6 +183,7 @@ class Window(pyglet.window.Window):
         self.gl_push(self.player.pos)
         self.blocks.batch.draw()
         pyglet.gl.glPopMatrix()
+        self.blocks.new_block = self.player.pos
 
 
 if __name__ == '__main__':
