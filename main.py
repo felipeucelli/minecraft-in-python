@@ -4,7 +4,6 @@ import math
 
 class Blocks:
     def __init__(self):
-        self.block_len = 0
         self.top = self.get_texture('texture/grass_top.png')
         self.side = self.get_texture('texture/grass_side.png')
         self.bottom = self.get_texture('texture/dir.png')
@@ -13,6 +12,7 @@ class Blocks:
         self.texture_group = (self.side, self.side, self.side, self.side, self.bottom, self.top)
         self.batch = pyglet.graphics.Batch()
 
+        self.block_len = 0
         self.block_sector = []
         self.new_block = []
         self.cube = []
@@ -59,7 +59,8 @@ class Blocks:
                 if v[0] == round(self.new_block[0]) - 1 and v[1] == round(self.new_block[1]) - 2 and v[2] == round(
                         self.new_block[2]) - 3:
                     for index in range(0, 6):
-                        self.world[k][index].delete()
+                        self.world = list(self.world)
+                        self.world[k - 1][index].delete()
                     self.block_len -= 1
 
     def add_block(self):
