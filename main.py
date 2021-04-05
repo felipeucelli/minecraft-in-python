@@ -84,13 +84,24 @@ class Blocks:
                 self.create_block()
 
     def collision(self, px, py, pz):
-        collision_sector = (round(px), round(py) - 2, round(pz) - 1)
-        if collision_sector in self.block_sector:
-            del collision_sector
-            return True
+        collision_sector = []
+        collision_side = (round(px), round(py) - 2, round(pz) - 1)
+        if collision_side in self.block_sector:
+            del collision_side
+            collision_sector.append(True)
         else:
-            del collision_sector
-            return False
+            del collision_side
+            collision_sector.append(False)
+
+        collision_bottom = (round(px), round(py) - 3, round(pz) - 1)
+        if collision_bottom in self.block_sector:
+            del collision_bottom
+            collision_sector.append(True)
+        else:
+            del collision_bottom
+            collision_sector.append(False)
+
+        return collision_sector
 
 
 class Player:
@@ -124,7 +135,7 @@ class Player:
 
         dx, dz = s * math.sin(rot_y), s * math.cos(rot_y)
 
-        if keys[pyglet.window.key.W] and not block_situation:
+        if keys[pyglet.window.key.W] and not block_situation[0]:
             self.pos[0] += dx
             self.pos[2] -= dz
 
@@ -143,9 +154,8 @@ class Player:
         if keys[pyglet.window.key.SPACE]:
             self.pos[1] += s
 
-        if keys[pyglet.window.key.LSHIFT]:
-            if self.pos[1] > 3:
-                self.pos[1] -= s
+        if keys[pyglet.window.key.LSHIFT] and not block_situation[1]:
+            self.pos[1] -= s
 
 
 class Window(pyglet.window.Window):
@@ -163,7 +173,7 @@ class Window(pyglet.window.Window):
         self.block_collision = False
 
         self.blocks = Blocks()
-        self.player = Player((0, 3, 0), (-30, 0))
+        self.player = Player((-0.5, 3, 0), (-30, 0))
 
     def gl_push(self, pos):
         pyglet.gl.glPushMatrix()
@@ -235,5 +245,5 @@ class Window(pyglet.window.Window):
 
 
 if __name__ == '__main__':
-    window = Window(width=400, height=300, caption='Minecraft in python', resizable=True)
+    window = Window(width=900, height=600, caption='Minecraft in python', resizable=True)
     pyglet.app.run()
