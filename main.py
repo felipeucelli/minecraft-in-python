@@ -29,7 +29,7 @@ class Blocks:
         return pyglet.graphics.TextureGroup(texture)
 
     def block_faces(self, nx=0, ny=0, nz=0):
-        x, y, z = 0 + nx, 0 + ny, -1 + nz
+        x, y, z = 0 + nx, 0 + ny, 0 + nz
 
         self.block_sector.append((x, y, z))
 
@@ -55,28 +55,42 @@ class Blocks:
 
     def remove_block(self):
         if self.block_len >= 1:
-            for k, v in enumerate(self.block_sector):
-                if v[0] == round(self.new_block[0]) - 1 and v[1] == round(self.new_block[1]) - 2 and v[2] == round(
-                        self.new_block[2]) - 3:
-                    for index in range(0, 6):
-                        try:
-                            self.world = list(self.world)
-                            self.world[k - 1][index].delete()
-                        except Exception as error:
-                            pass
-                    self.block_len -= 1
+            remove_sector = (round(self.new_block[0]) - 1, round(self.new_block[1]) - 2, round(self.new_block[2]) - 3)
+            if remove_sector in self.block_sector:
+                k = self.block_sector.index(remove_sector)
+                for index in range(0, 6):
+                    try:
+                        self.world[k - 1][index].delete()
+                    except Exception as error:
+                        print(error)
+                del self.world[k - 1]
+                del self.block_sector[k]
+                self.block_len -= 1
+            del remove_sector
 
     def add_block(self):
-        self.block_len += 1
-        self.faces = self.block_faces(nx=round(self.new_block[0]) - 1, ny=round(self.new_block[1]) - 2,
-                                      nz=round(self.new_block[2]) - 2)
-        self.create_block()
+        add_sector = (round(self.new_block[0]) - 1, round(self.new_block[1]) - 2, round(self.new_block[2]) - 3)
+        if add_sector not in self.block_sector:
+            self.block_len += 1
+            self.faces = self.block_faces(nx=round(self.new_block[0]) - 1, ny=round(self.new_block[1]) - 2,
+                                          nz=round(self.new_block[2]) - 3)
+            self.create_block()
+        del add_sector
 
     def generate_world(self):
         for x in range(-16, 16):
             for z in range(-16, 16):
                 self.faces = self.block_faces(nx=x, ny=0, nz=z)
                 self.create_block()
+
+    def collision(self, px, py, pz):
+        collision_sector = (round(px), round(py) - 2, round(pz) - 1)
+        if collision_sector in self.block_sector:
+            del collision_sector
+            return True
+        else:
+            del collision_sector
+            return False
 
 
 class Player:
@@ -103,14 +117,14 @@ class Player:
         elif self.rotation[0] < -90:
             self.rotation[0] = -90
 
-    def update(self, dt, keys):
+    def update(self, dt, keys, block_situation):
         s = dt * 8
 
         rot_y = -self.rotation[1] / 180 * math.pi
 
         dx, dz = s * math.sin(rot_y), s * math.cos(rot_y)
 
-        if keys[pyglet.window.key.W]:
+        if keys[pyglet.window.key.W] and not block_situation:
             self.pos[0] += dx
             self.pos[2] -= dz
 
@@ -130,7 +144,8 @@ class Player:
             self.pos[1] += s
 
         if keys[pyglet.window.key.LSHIFT]:
-            self.pos[1] -= s
+            if self.pos[1] > 3:
+                self.pos[1] -= s
 
 
 class Window(pyglet.window.Window):
@@ -145,6 +160,7 @@ class Window(pyglet.window.Window):
         pyglet.clock.schedule(self.update)
 
         self.mouse_lock = False
+        self.block_collision = False
 
         self.blocks = Blocks()
         self.player = Player((0, 3, 0), (-30, 0))
@@ -177,7 +193,7 @@ class Window(pyglet.window.Window):
 
         if 65 < self.player.rotation[1] < 130:
             self.blocks.new_block = (self.player.pos[0] - 2, self.player.pos[1], self.player.pos[2] + 2.5)
-            
+
         if 130 < self.player.rotation[1] < 240:
             self.blocks.new_block = (self.player.pos[0] + 1, self.player.pos[1], self.player.pos[2] + 5)
 
@@ -188,7 +204,9 @@ class Window(pyglet.window.Window):
         self.set_exclusive_mouse(status)
 
     def update(self, dt):
-        self.player.update(dt, self.keys)
+        self.player.update(dt, self.keys, self.block_collision)
+        self.block_collision = self.blocks.collision(px=self.player.pos[0], py=self.player.pos[1],
+                                                     pz=self.player.pos[2])
 
     def on_mouse_motion(self, x, y, dx, dy):
         if self.mouse_lock:
