@@ -59,8 +59,11 @@ class Blocks:
                 if v[0] == round(self.new_block[0]) - 1 and v[1] == round(self.new_block[1]) - 2 and v[2] == round(
                         self.new_block[2]) - 3:
                     for index in range(0, 6):
-                        self.world = list(self.world)
-                        self.world[k - 1][index].delete()
+                        try:
+                            self.world = list(self.world)
+                            self.world[k - 1][index].delete()
+                        except Exception as error:
+                            pass
                     self.block_len -= 1
 
     def add_block(self):
@@ -81,12 +84,19 @@ class Player:
         self.pos = list(pos)
         self.rotation = list(rotation)
 
+        self.blocks = Blocks()
+
     def mouse_movement(self, dx, dy):
         dx /= 8
         dy /= 8
 
         self.rotation[0] += dy
         self.rotation[1] -= dx
+
+        if self.rotation[1] > 360:
+            self.rotation[1] = 0
+        elif self.rotation[1] < 0:
+            self.rotation[1] = 360
 
         if self.rotation[0] > 90:
             self.rotation[0] = 90
@@ -161,6 +171,19 @@ class Window(pyglet.window.Window):
         pyglet.gl.gluPerspective(70, self.width / self.height, 0.05, 1000)
         self.set_gl_model()
 
+    def relative_pos(self):
+        if 65 > self.player.rotation[1] >= 0 or 0 < self.player.rotation[1] > 300:
+            self.blocks.new_block = self.player.pos
+
+        if 65 < self.player.rotation[1] < 130:
+            self.blocks.new_block = (self.player.pos[0] - 2, self.player.pos[1], self.player.pos[2] + 2.5)
+            
+        if 130 < self.player.rotation[1] < 240:
+            self.blocks.new_block = (self.player.pos[0] + 1, self.player.pos[1], self.player.pos[2] + 5)
+
+        if 240 < self.player.rotation[1] < 300:
+            self.blocks.new_block = (self.player.pos[0] + 3, self.player.pos[1], self.player.pos[2] + 2)
+
     def mouse_status(self, status):
         self.set_exclusive_mouse(status)
 
@@ -190,7 +213,7 @@ class Window(pyglet.window.Window):
         self.gl_push(self.player.pos)
         self.blocks.batch.draw()
         pyglet.gl.glPopMatrix()
-        self.blocks.new_block = self.player.pos
+        self.relative_pos()
 
 
 if __name__ == '__main__':
