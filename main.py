@@ -59,10 +59,7 @@ class Blocks:
             if remove_sector in self.block_sector:
                 k = self.block_sector.index(remove_sector)
                 for index in range(0, 6):
-                    try:
-                        self.world[k - 1][index].delete()
-                    except Exception as error:
-                        print(error)
+                    self.world[k - 1][index].delete()
                 del self.world[k - 1]
                 del self.block_sector[k]
                 self.block_len -= 1
@@ -129,6 +126,8 @@ class Player:
             self.rotation[0] = -90
 
     def update(self, dt, keys, block_situation):
+        i = 0
+        jump_limit = 2
         s = dt * 8
 
         rot_y = -self.rotation[1] / 180 * math.pi
@@ -136,6 +135,7 @@ class Player:
         dx, dz = s * math.sin(rot_y), s * math.cos(rot_y)
 
         if keys[pyglet.window.key.W] and not block_situation[0]:
+            jump_limit = 3
             self.pos[0] += dx
             self.pos[2] -= dz
 
@@ -152,9 +152,8 @@ class Player:
             self.pos[2] += dx
 
         if keys[pyglet.window.key.SPACE]:
-            i = 0
-            while i < 2:
-                self.pos[1] += s
+            while i < jump_limit:
+                self.pos[1] += 0.1
                 i += 1
 
         if keys[pyglet.window.key.LSHIFT] and not block_situation[1]:
