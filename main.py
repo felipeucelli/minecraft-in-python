@@ -152,9 +152,15 @@ class Player:
             self.pos[2] += dx
 
         if keys[pyglet.window.key.SPACE]:
-            self.pos[1] += s
+            i = 0
+            while i < 2:
+                self.pos[1] += s
+                i += 1
 
         if keys[pyglet.window.key.LSHIFT] and not block_situation[1]:
+            self.pos[1] -= s
+
+        if not block_situation[1]:
             self.pos[1] -= s
 
 
@@ -170,7 +176,7 @@ class Window(pyglet.window.Window):
         pyglet.clock.schedule(self.update)
 
         self.mouse_lock = False
-        self.block_collision = False
+        self.block_collision = (False, True)
 
         self.blocks = Blocks()
         self.player = Player((-0.5, 3, 0), (-30, 0))
