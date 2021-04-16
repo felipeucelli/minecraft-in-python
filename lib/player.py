@@ -28,25 +28,33 @@ class Player:
         elif self.rotation[0] < -90:
             self.rotation[0] = -90
 
-    def keys_press(self, keys, dx, dz, s, block_situation):
+    def keys_press(self, keys, dx, dz, s, block_situation, vision_direction):
         i = 0
         jump_limit = 2
-        if keys[pyglet.window.key.W] and not block_situation[0]:
+        if keys[pyglet.window.key.W]:
             jump_limit = 3
-            self.pos[0] += dx
-            self.pos[2] -= dz
+            if not block_situation[0] or vision_direction[2] == 'Z':
+                self.pos[0] += dx
+            if not block_situation[0] or vision_direction[2] == 'X':
+                self.pos[2] -= dz
 
         if keys[pyglet.window.key.S]:
-            self.pos[0] -= dx
-            self.pos[2] += dz
+            if not block_situation[0] or vision_direction[2] == 'Z':
+                self.pos[0] -= dx
+            if not block_situation[0] or vision_direction[2] == 'X':
+                self.pos[2] += dz
 
         if keys[pyglet.window.key.A]:
-            self.pos[0] -= dz
-            self.pos[2] -= dx
+            if not block_situation[0] or vision_direction[2] == 'X':
+                self.pos[0] -= dz
+            if not block_situation[0] or vision_direction[2] == 'Z':
+                self.pos[2] -= dx
 
         if keys[pyglet.window.key.D]:
-            self.pos[0] += dz
-            self.pos[2] += dx
+            if not block_situation[0] or vision_direction[2] == 'X':
+                self.pos[0] += dz
+            if not block_situation[0] or vision_direction[2] == 'Z':
+                self.pos[2] += dx
 
         if keys[pyglet.window.key.SPACE]:
             if not self.flight:
@@ -65,11 +73,12 @@ class Player:
         if keys[pyglet.window.key.TAB]:
             self.flight = not self.flight
 
-    def update(self, dt, keys, block_situation):
+    def update(self, dt, keys, block_situation, vision_direction):
         s = dt * 8
 
         rot_y = -self.rotation[1] / 180 * math.pi
 
         dx, dz = s * math.sin(rot_y), s * math.cos(rot_y)
 
-        self.keys_press(keys=keys, dx=dx, dz=dz, s=s, block_situation=block_situation)
+        self.keys_press(keys=keys, dx=dx, dz=dz, s=s,
+                        block_situation=block_situation, vision_direction=vision_direction)

@@ -16,6 +16,7 @@ class Window(pyglet.window.Window):
 
         self.mouse_lock = False
         self.block_collision = [False, True]
+        self.vision_direction = ['X', 'Y', 'Z']
 
         self.blocks = Blocks()
         self.player = Player((-0.5, 3, 0), (-30, 0))
@@ -45,21 +46,25 @@ class Window(pyglet.window.Window):
     def relative_pos(self):
         if 65 > self.player.rotation[1] >= 0 or 0 < self.player.rotation[1] > 300:
             self.blocks.new_block = self.player.pos
+            self.vision_direction = ['X', 'Y', 'Z']
 
         if 65 < self.player.rotation[1] < 130:
             self.blocks.new_block = (self.player.pos[0] - 2, self.player.pos[1], self.player.pos[2] + 2.5)
+            self.vision_direction = ['Z', 'Y', '-X']
 
         if 130 < self.player.rotation[1] < 240:
             self.blocks.new_block = (self.player.pos[0] + 1, self.player.pos[1], self.player.pos[2] + 5)
+            self.vision_direction = ['-X', 'Y', '-Z']
 
         if 240 < self.player.rotation[1] < 300:
             self.blocks.new_block = (self.player.pos[0] + 3, self.player.pos[1], self.player.pos[2] + 2)
+            self.vision_direction = ['-Z', 'Y', 'X']
 
     def mouse_status(self, status):
         self.set_exclusive_mouse(status)
 
     def update(self, dt):
-        self.player.update(dt, self.keys, self.block_collision)
+        self.player.update(dt, self.keys, self.block_collision, self.vision_direction)
         self.block_collision = self.blocks.collision(px=self.player.pos[0], py=self.player.pos[1],
                                                      pz=self.player.pos[2])
 
