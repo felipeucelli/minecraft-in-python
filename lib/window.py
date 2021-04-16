@@ -15,7 +15,7 @@ class Window(pyglet.window.Window):
         pyglet.clock.schedule(self.update)
 
         self.mouse_lock = False
-        self.block_collision = [False, True, False]
+        self.block_collision = [False, True]
 
         self.blocks = Blocks()
         self.player = Player((-0.5, 3, 0), (-30, 0))
